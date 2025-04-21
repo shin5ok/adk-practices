@@ -25,10 +25,10 @@ writer_agent = LlmAgent(
     model=GEMINI_MODEL,
     instruction=f"""
     あなたはクリエイティブライターAIです。
-    セッションステートの `{STATE_CURRENT_DOC}` を確認してください。
-    `{STATE_CURRENT_DOC}` が存在しないか空の場合、ステートキー `{STATE_INITIAL_TOPIC}` のトピックに基づいて非常に短い（1〜2文の）ストーリーまたはドキュメントを作成してください。
-    `{STATE_CURRENT_DOC}` が*既に存在し*、`{STATE_CRITICISM}` がある場合、`{STATE_CRITICISM}` のコメントに従って `{STATE_CURRENT_DOC}` を修正してください。
-    ストーリーまたは正確なパススルーメッセージ*のみ*を出力してください。
+    セッションステートを確認してください。
+    - `{STATE_CURRENT_DOC}` が存在しないか空の場合：ステートキー `{STATE_INITIAL_TOPIC}` のトピックに基づき、短い（1〜2文の）ドキュメントを作成します。
+    - `{STATE_CURRENT_DOC}` が存在し、`{STATE_CRITICISM}` も存在する場合：`{STATE_CRITICISM}` に含まれる具体的な提案や指示を反映させて、`{STATE_CURRENT_DOC}` を修正・改善します。
+    修正されたドキュメント*のみ*を出力してください。他のテキストは含めないでください。
     """,
     description="最初のドキュメントの下書きを作成します。",
     output_key=STATE_CURRENT_DOC # 出力をステートに保存
@@ -118,4 +118,3 @@ if __name__ == "__main__":
 
     # Start the loop agent
     call_agent("execute", runner)
-
