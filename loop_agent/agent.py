@@ -18,7 +18,7 @@ STATE_INITIAL_TOPIC = "イタリア人をターゲットにした寿司レスト
 STATE_INITIAL_TOPIC = sys.argv[1] if len(sys.argv) > 1 else STATE_INITIAL_TOPIC
 STATE_CURRENT_DOC = "current_document"
 STATE_CRITICISM = "criticism"
-STATE_QUALITY_FEEDBACK = "quality_feedback" # 品質フィードバック用の新しいキーを追加
+STATE_QUALITY_FEEDBACK = "quality_check" # 品質フィードバック用の新しいキーを追加
 
 writer_agent = LlmAgent(
     name="WriterAgent",
@@ -48,19 +48,43 @@ critic_agent = LlmAgent(
     output_key=STATE_CRITICISM # 批評をステートに保存
 )
 
+from google.adk.agents.callback_context import CallbackContext
+from google.adk.models import LlmResponse, LlmRequest
+from typing import Optional
+def quality_feedback(callback_context: CallbackContext) -> Optional[types.Content]:
+    # import pprint;pprint.pprint(callback_context.user_content)
+    # import pprint;pprint.pprint(callback_context.state.get(STATE_CURRENT_DOC))
+    # import pprint;pprint.pprint(callback_context.state.to_dict())
+    if n := callback_context.state.get(STATE_QUALITY_FEEDBACK):
+        int_n = int(n)
+        if int_n >= 8:
+            print("品質フィードバック:", n)
+            # https://google.github.io/adk-docs/callbacks/#the-callback-mechanism-interception-and-control
+            return types.Content(
+                role="model",
+                parts=[
+                    types.Part(
+                        text=STATE_CURRENT_DOC,
+                    )
+                ],
+            )
+    return None # process normally
+
+
 # Quality Agent (LlmAgent)
 quality_agent = LlmAgent(
     name="QualityAgent",
     model=GEMINI_MODEL,
     instruction=f"""
     あなたは品質評価AIです。
-    セッションステートキー `{STATE_CURRENT_DOC}` で提供されたドキュメントを確認してください。
-    ドキュメントの品質（明瞭さ、一貫性、文法など）を評価し、具体的なフィードバックを提供してください。
-    評価フィードバック*のみ*を出力してください。
+    わかりやすさの観点で、1-10の整数で現在のドキュメント{STATE_CURRENT_DOC}の品質を評価してください。
+    整数*のみ*を出力してください（改行も不要）。
     """,
+    after_agent_callback=quality_feedback,
     description="現在のドキュメントの品質を評価します。",
     output_key=STATE_QUALITY_FEEDBACK # 品質フィードバックをステートに保存
 )
+
 
 
 # Create the LoopAgent
