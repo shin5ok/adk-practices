@@ -4,6 +4,8 @@ from google.genai import types
 from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 
+import sys
+
 # --- Constants ---
 APP_NAME = "doc_writing_app"
 USER_ID = "dev_user_01"
@@ -12,7 +14,8 @@ GEMINI_MODEL = "gemini-2.0-flash"
 
 # --- State Keys ---
 STATE_INITIAL_TOPIC = "quantum physics"
-STATE_INITIAL_TOPIC = "イタリア人をターゲットにした寿司レストランのアイデア"
+STATE_INITIAL_TOPIC = "イタリア人をターゲットにした寿司レストランのキャッチコピー"
+STATE_INITIAL_TOPIC = sys.argv[1] if len(sys.argv) > 1 else STATE_INITIAL_TOPIC
 STATE_CURRENT_DOC = "current_document"
 STATE_CRITICISM = "criticism"
 
@@ -46,7 +49,9 @@ critic_agent = LlmAgent(
 
 # Create the LoopAgent
 loop_agent = LoopAgent(
-    name="LoopAgent", sub_agents=[writer_agent, critic_agent], max_iterations=5
+    name="LoopAgent",
+    sub_agents=[writer_agent, critic_agent],
+    max_iterations=5,
 )
 
 # Session and Runner
