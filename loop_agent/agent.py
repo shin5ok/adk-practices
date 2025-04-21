@@ -18,6 +18,7 @@ STATE_INITIAL_TOPIC = "イタリア人をターゲットにした寿司レスト
 STATE_INITIAL_TOPIC = sys.argv[1] if len(sys.argv) > 1 else STATE_INITIAL_TOPIC
 STATE_CURRENT_DOC = "current_document"
 STATE_CRITICISM = "criticism"
+STATE_QUALITY_FEEDBACK = "quality_feedback" # 品質フィードバック用の新しいキーを追加
 
 writer_agent = LlmAgent(
     name="WriterAgent",
@@ -47,10 +48,25 @@ critic_agent = LlmAgent(
     output_key=STATE_CRITICISM # 批評をステートに保存
 )
 
+# Quality Agent (LlmAgent)
+quality_agent = LlmAgent(
+    name="QualityAgent",
+    model=GEMINI_MODEL,
+    instruction=f"""
+    あなたは品質評価AIです。
+    セッションステートキー `{STATE_CURRENT_DOC}` で提供されたドキュメントを確認してください。
+    ドキュメントの品質（明瞭さ、一貫性、文法など）を評価し、具体的なフィードバックを提供してください。
+    評価フィードバック*のみ*を出力してください。
+    """,
+    description="現在のドキュメントの品質を評価します。",
+    output_key=STATE_QUALITY_FEEDBACK # 品質フィードバックをステートに保存
+)
+
+
 # Create the LoopAgent
 loop_agent = LoopAgent(
     name="LoopAgent",
-    sub_agents=[writer_agent, critic_agent],
+    sub_agents=[writer_agent, quality_agent, critic_agent], # quality_agent を2番目に追加
     max_iterations=5,
 )
 
