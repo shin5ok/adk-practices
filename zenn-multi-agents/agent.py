@@ -55,7 +55,7 @@ class LocalApp:
                         response += f'[{event.author}]\n\n{p.text}\n'
                 if response:
                     #### Temporary fix for wrong agent routing message
-                    pattern = 'transfer_to_agent\(agent_name=["\']([^"]+)["\']\)'
+                    pattern = r'transfer_to_agent\(agent_name=["\']([^"]+)["\']\)'
                     matched = re.search(pattern, response)
                     if (not agent_name) and matched:
                         agent_name = matched.group(1)
